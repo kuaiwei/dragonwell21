@@ -271,6 +271,7 @@ class StubRoutines: AllStatic {
 
   static address _lookup_secondary_supers_table_stubs[];
   static address _lookup_secondary_supers_table_slow_path_stub;
+  static address _upcall_stub_exception_handler;
 
  public:
   // Initialization/Testing
@@ -477,6 +478,11 @@ class StubRoutines: AllStatic {
   static address lookup_secondary_supers_table_slow_path_stub() {
     assert(_lookup_secondary_supers_table_slow_path_stub != nullptr, "not implemented");
     return _lookup_secondary_supers_table_slow_path_stub;
+  }
+
+  static address upcall_stub_exception_handler() {
+    assert(_upcall_stub_exception_handler != nullptr, "not implemented");
+    return _upcall_stub_exception_handler;
   }
 
   static address select_fill_function(BasicType t, bool aligned, const char* &name);
