@@ -114,7 +114,7 @@ static bool is_unboxing_method(ciMethod* callee_method, Compile* C) {
 
 // positive filter: should callee be inlined?
 bool InlineTree::should_inline(ciMethod* callee_method, ciMethod* caller_method,
-                               int caller_bci, bool& should_delay, ciCallProfile& profile) {
+                               int caller_bci, bool& should_delay, ciCallProfile& profile, bool& relevant) {
   // Allows targeted inlining
   if (C->directive()->should_inline(callee_method)) {
     set_msg("force inline by CompileCommand");
@@ -158,6 +158,29 @@ bool InlineTree::should_inline(ciMethod* callee_method, ciMethod* caller_method,
 
   int call_site_count  = caller_method->scale_count(profile.count());
   int invoke_count     = caller_method->interpreter_invocation_count();
+  if (UseNewCode && callee_method->method_data() != nullptr) {
+    int callee_invoke_count = callee_method->interpreter_invocation_count();
+    for (int i=0; i<2 && profile.has_receiver(i); i++) {
+      ciKlass* receiver = profile.receiver(i);
+      if (receiver->equals(callee_method->holder())) {
+        int receiver_count = profile.receiver_count(i);
+        double relative = (double)receiver_count / (double)callee_invoke_count;
+        if (relative > 0.8) {
+          relevant = true;
+        }
+        if (log_is_enabled(Info, jit, compilation) && relevant) {
+          ResourceMark rm;
+          ttyLocker ttyl;
+          log_info(jit,compilation)("trace caller/callee relative %d/%d, receiver:%s",
+                                    receiver_count, callee_invoke_count, receiver->external_name());
+          caller_method->print_name(tty);
+          tty->print_cr(" ");
+          callee_method->print_name(tty);
+          tty->print_cr(" ");
+        }
+      }
+    }
+  }
 
   assert(invoke_count != 0, "require invocation count greater than zero");
   double freq = (double)call_site_count / (double)invoke_count;
@@ -197,7 +220,7 @@ bool InlineTree::should_inline(ciMethod* callee_method, ciMethod* caller_method,
 
 // negative filter: should callee NOT be inlined?
 bool InlineTree::should_not_inline(ciMethod* callee_method, ciMethod* caller_method,
-                                   int caller_bci, bool& should_delay, ciCallProfile& profile) {
+                                   int caller_bci, bool& should_delay, ciCallProfile& profile, bool& relevant) {
   const char* fail_msg = nullptr;
 
   // First check all inlining restrictions which are required for correctness
@@ -273,8 +296,22 @@ bool InlineTree::should_not_inline(ciMethod* callee_method, ciMethod* caller_met
     return false;
   }
 
+  int inline_small_code = InlineSmallCode;
+  if (UseNewCode && relevant) {
+    // increase inline code size if caller/callee are tight relevant
+    inline_small_code *= 2;
+    if (log_is_enabled(Info, jit, compilation)) {
+      int code_size = callee_method->has_compiled_code() ? callee_method->inline_instructions_size() : -1;
+      if (code_size > 0 && code_size > InlineSmallCode && code_size < inline_small_code) {
+        ttyLocker ttyl;
+        log_info(jit, compilation)("method has size of %d is inlined by relative", code_size);
+        callee_method->print_name(tty);
+        tty->print_cr(" ");
+      }
+    }
+  }
   if (callee_method->has_compiled_code() &&
-      callee_method->inline_instructions_size() > InlineSmallCode) {
+      callee_method->inline_instructions_size() > inline_small_code) {
     set_msg("already compiled into a big method");
     return true;
   }
@@ -374,12 +411,14 @@ bool InlineTree::try_to_inline(ciMethod* callee_method, ciMethod* caller_method,
 
   _forced_inline = false; // Reset
 
+  bool relevant = false;
+
   // 'should_delay' can be overridden during replay compilation
-  if (!should_inline(callee_method, caller_method, caller_bci, should_delay, profile)) {
+  if (!should_inline(callee_method, caller_method, caller_bci, should_delay, profile, relevant)) {
     return false;
   }
   // 'should_delay' can be overridden during replay compilation
-  if (should_not_inline(callee_method, caller_method, caller_bci, should_delay, profile)) {
+  if (should_not_inline(callee_method, caller_method, caller_bci, should_delay, profile, relevant)) {
     return false;
   }
 

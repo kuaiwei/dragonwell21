@@ -2676,6 +2676,16 @@ void LIR_Assembler::emit_profile_call(LIR_OpProfileCall* op) {
           return;
         }
       }
+      if (log_is_enabled(Info, jit, compilation)){
+        ResourceMark rm;
+        log_info(jit, compilation)("known klass %s can not be profiled in method %s at bci %d", known_klass->external_name(), method->name()->as_utf8(), bci);
+        for (i = 0; i < VirtualCallData::row_limit(); i++) {
+          ciKlass* receiver = vc_data->receiver(i);
+          assert(receiver != nullptr, "should not happen");
+          log_info(jit, compilation)("  type %s -> %d", receiver->external_name(), vc_data->count());
+        }
+      }
+      // TODO: update counter for no empty slots
     } else {
       __ load_klass(recv, recv);
       Label update_done;

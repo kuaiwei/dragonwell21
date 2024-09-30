@@ -77,12 +77,14 @@ protected:
                             ciMethod* caller_method,
                             int caller_bci,
                             bool& should_delay,
-                            ciCallProfile& profile);
+                            ciCallProfile& profile,
+                            bool& relevant);
   bool        should_not_inline(ciMethod* callee_method,
                                 ciMethod* caller_method,
                                 int caller_bci,
                                 bool& should_delay,
-                                ciCallProfile& profile);
+                                ciCallProfile& profile,
+                                bool& relevant);
   bool        is_not_reached(ciMethod* callee_method,
                              ciMethod* caller_method,
                              int caller_bci,
