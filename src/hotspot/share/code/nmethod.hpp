@@ -74,6 +74,9 @@ class nmethod : public CompiledMethod {
 
   uint64_t  _gc_epoch;
 
+  // Profiling counter used to figure out the hottest nmethods to record into CDS
+  volatile uint64_t _method_profiling_count;
+
   // To reduce header size union fields which usages do not overlap.
   union {
     // To support simple linked-list chaining of nmethods:
@@ -487,6 +490,9 @@ class nmethod : public CompiledMethod {
   RTMState  rtm_state() const                     { return _rtm_state; }
   void set_rtm_state(RTMState state)              { _rtm_state = state; }
 #endif
+
+  void inc_method_profiling_count();
+  uint64_t method_profiling_count();
 
   bool make_in_use() {
     return try_transition(in_use);

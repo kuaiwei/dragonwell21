@@ -379,6 +379,18 @@
           "Don't compile methods larger than this if "                      \
           "+DontCompileHugeMethods")                                        \
                                                                             \
+  /* flags to control training and deployment modes  */                     \
+                                                                            \
+  product(bool, RecordOptCompilationOrder, false,                           \
+          "Record c2/jvmci nmethod temperature to guide compilation order.")\
+                                                                            \
+  product(bool, RecordOnlyTopCompilations, false,                           \
+          "Record only top compilations (non-zero counts)")                 \
+                                                                            \
+  product(int, RecordOptCompilationOrderInterval, 10,                       \
+          "Sampling interval for RecordOptCompilationOrder")                \
+                                                                            \
+
 
 // end of COMPILER_FLAGS
 

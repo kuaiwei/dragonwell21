@@ -756,6 +756,7 @@ nmethod::nmethod(
     }
     // Native wrappers do not have deopt handlers. Make the values
     // something that will never match a pc like the nmethod vtable entry
+    _method_profiling_count  = 0;
     _unwind_handler_offset   = 0;
 
     CHECKED_CAST(_metadata_offset, uint16_t, (align_up(code_buffer->total_oop_size(), oopSize)));
@@ -886,6 +887,7 @@ nmethod::nmethod(
 
 
     init_defaults(code_buffer, offsets);
+    _method_profiling_count = 0;
 
     _osr_entry_point = code_begin() + offsets->value(CodeOffsets::OSR_Entry);
     _entry_bci       = entry_bci;
@@ -1375,6 +1377,14 @@ void nmethod::inc_decompile_count() {
   if (mdo == nullptr)  return;
   // There is a benign race here.  See comments in methodData.hpp.
   mdo->inc_decompile_count();
+}
+
+void nmethod::inc_method_profiling_count() {
+  Atomic::inc(&_method_profiling_count);
+}
+
+uint64_t nmethod::method_profiling_count() {
+  return _method_profiling_count;
 }
 
 bool nmethod::try_transition(int new_state_int) {
