@@ -28,6 +28,7 @@
 #include "runtime/handles.inline.hpp"
 
 MethodCounters::MethodCounters(const methodHandle& mh) :
+  _method_training_data(nullptr),
   _prev_time(0),
   _rate(0),
   _highest_comp_level(0),
@@ -66,6 +67,8 @@ void MethodCounters::clear_counters() {
   set_highest_comp_level(0);
   set_highest_osr_comp_level(0);
 }
+
+// TODO: MethodCounters::metaspace_pointers_do
 
 void MethodCounters::print_value_on(outputStream* st) const {
   assert(is_methodCounters(), "must be methodCounters");

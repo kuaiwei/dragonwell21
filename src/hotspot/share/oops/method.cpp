@@ -572,6 +572,34 @@ void Method::print_invocation_count() {
 #endif
 }
 
+MethodTrainingData* Method::training_data_or_null() const {
+  MethodCounters* mcs = method_counters();
+  if (mcs == nullptr) {
+    return nullptr;
+  } else {
+    return mcs->method_training_data();
+  }
+}
+
+bool Method::init_training_data(MethodTrainingData* tdata) {
+  MethodCounters* mcs = method_counters();
+  if (mcs == nullptr) {
+    return false;
+  } else {
+    return mcs->init_method_training_data(tdata);
+  }
+}
+
+bool Method::install_training_method_data(const methodHandle& method) {
+  MethodTrainingData* mtd = MethodTrainingData::find(method);
+  if (mtd != nullptr && mtd->has_holder() && mtd->final_profile() != nullptr &&
+      mtd->holder() == method() && mtd->final_profile()->method() == method()) { // FIXME
+    Atomic::replace_if_null(&method->_method_data, mtd->final_profile());
+    return true;
+  }
+  return false;
+}
+
 // Build a MethodData* object to hold profiling information collected on this
 // method when requested.
 void Method::build_profiling_method_data(const methodHandle& method, TRAPS) {

@@ -31,12 +31,16 @@
 #include "interpreter/invocationCounter.hpp"
 #include "utilities/align.hpp"
 
+class MethodTrainingData;
+
 class MethodCounters : public Metadata {
  friend class VMStructs;
  friend class JVMCIVMStructs;
  private:
   InvocationCounter _invocation_counter;         // Incremented before each activation of the method - used to trigger frequency-based optimizations
   InvocationCounter _backedge_counter;           // Incremented before each backedge taken - used to trigger frequency-based optimizations
+
+  MethodTrainingData* _method_training_data;
   jlong             _prev_time;                   // Previous time the rate was acquired
   float             _rate;                        // Events (invocation and backedge counter increments) per millisecond
   int               _invoke_mask;                 // per-method Tier0InvokeNotifyFreqLog
@@ -130,6 +134,13 @@ class MethodCounters : public Metadata {
   }
 
   virtual const char* internal_name() const { return "{method counters}"; }
+
+  MethodTrainingData* method_training_data() const { return _method_training_data; }
+  bool init_method_training_data(MethodTrainingData* tdata) {
+    return (_method_training_data == tdata ||
+            Atomic::replace_if_null(&_method_training_data, tdata));
+  }
+
   virtual void print_value_on(outputStream* st) const;
 
 };

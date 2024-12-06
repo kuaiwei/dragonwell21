@@ -380,6 +380,14 @@
           "+DontCompileHugeMethods")                                        \
                                                                             \
   /* flags to control training and deployment modes  */                     \
+  product(bool, RecordTraining, false,                                      \
+          "Request output of training data for improved deployment.")       \
+                                                                            \
+  product(bool, ReplayTraining, false,                                      \
+          "Read training data, if available, for use in this execution")    \
+                                                                            \
+  product(bool, PrintTrainingInfo, false, DIAGNOSTIC,                       \
+          "Print additional information about training")                    \
                                                                             \
   product(bool, RecordOptCompilationOrder, false,                           \
           "Record c2/jvmci nmethod temperature to guide compilation order.")\
