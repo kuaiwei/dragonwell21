@@ -1841,3 +1841,13 @@ void MethodData::release_C_heap_structures() {
   FailedSpeculation::free_failed_speculations(get_failed_speculations_address());
 #endif
 }
+
+#if INCLUDE_CDS
+void MethodData::remove_unshareable_info() {
+  // TODO: _extra_data_lock = nullptr;
+}
+
+void MethodData::restore_unshareable_info(TRAPS) {
+  //_extra_data_lock = new Mutex(Mutex::nosafepoint, "MDOExtraData_lock");
+}
+#endif // INCLUDE_CDS

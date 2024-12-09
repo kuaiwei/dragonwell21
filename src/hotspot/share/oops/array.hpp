@@ -55,6 +55,9 @@ protected:
 
   inline void* operator new(size_t size, ClassLoaderData* loader_data, int length, TRAPS) throw();
 
+  // Work-around -- see JDK-8331086
+  inline void* operator new(size_t size, int length, MEMFLAGS flags) throw();
+
   static size_t byte_sizeof(int length, size_t elm_byte_size) {
     return sizeof(Array<T>) + MAX2(length - 1, 0) * elm_byte_size;
   }

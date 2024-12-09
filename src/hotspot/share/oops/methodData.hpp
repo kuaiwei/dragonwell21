@@ -2258,6 +2258,11 @@ public:
   }
 #endif
 
+#if INCLUDE_CDS
+  void remove_unshareable_info();
+  void restore_unshareable_info(TRAPS);
+#endif
+
   void set_would_profile(bool p)              { _would_profile = p ? profile : no_profile; }
   bool would_profile() const                  { return _would_profile != no_profile; }
 

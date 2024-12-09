@@ -85,6 +85,13 @@ void* MetaspaceObj::operator new(size_t size, ClassLoaderData* loader_data,
   return Metaspace::allocate(loader_data, word_size, type);
 }
 
+// Work-around -- see JDK-8331086
+void* MetaspaceObj::operator new(size_t size, MEMFLAGS flags) throw() {
+  void* p = AllocateHeap(size, flags, CALLER_PC);
+  memset(p, 0, size);
+  return p;
+}
+
 bool MetaspaceObj::is_valid(const MetaspaceObj* p) {
   // Weed out obvious bogus values first without traversing metaspace
   if ((size_t)p < os::min_page_size()) {

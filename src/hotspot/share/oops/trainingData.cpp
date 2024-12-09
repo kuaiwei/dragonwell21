@@ -25,7 +25,7 @@
 #include "precompiled.hpp"
 #include "ci/ciEnv.hpp"
 #include "ci/ciMetadata.hpp"
-#include "cds/cdsConfig.hpp"
+// #include "cds/cdsConfig.hpp"
 #include "cds/metaspaceShared.hpp"
 #include "classfile/classLoaderData.hpp"
 #include "classfile/compactHashtable.hpp"
@@ -53,15 +53,18 @@ int TrainingData::TrainingDataLocker::_lock_mode;
 volatile bool TrainingData::TrainingDataLocker::_snapshot = false;
 
 MethodTrainingData::MethodTrainingData() {
-  assert(CDSConfig::is_dumping_static_archive() || UseSharedSpaces, "only for CDS");
+  // assert(CDSConfig::is_dumping_static_archive() || UseSharedSpaces, "only for CDS");
+  assert(UseNewCode2 || UseSharedSpaces, "only for CDS");
 }
 
 KlassTrainingData::KlassTrainingData() {
-  assert(CDSConfig::is_dumping_static_archive() || UseSharedSpaces, "only for CDS");
+  // assert(CDSConfig::is_dumping_static_archive() || UseSharedSpaces, "only for CDS");
+  assert(UseNewCode2 || UseSharedSpaces, "only for CDS");
 }
 
 CompileTrainingData::CompileTrainingData() : _level(-1), _compile_id(-1) {
-  assert(CDSConfig::is_dumping_static_archive() || UseSharedSpaces, "only for CDS");
+  // assert(CDSConfig::is_dumping_static_archive() || UseSharedSpaces, "only for CDS");
+  assert(UseNewCode2 || UseSharedSpaces, "only for CDS");
 }
 
 void TrainingData::initialize() {
@@ -480,7 +483,8 @@ void TrainingData::init_dumptime_table(TRAPS) {
     return;
   }
   _dumptime_training_data_dictionary = new DumptimeTrainingDataDictionary();
-  if (CDSConfig::is_dumping_final_static_archive()) {
+  // if (CDSConfig::is_dumping_final_static_archive()) {
+  if (UseNewCode3) {
     _archived_training_data_dictionary.iterate([&](TrainingData* record) {
       _dumptime_training_data_dictionary->append(record);
     });

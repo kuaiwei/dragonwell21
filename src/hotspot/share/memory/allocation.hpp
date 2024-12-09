@@ -394,6 +394,12 @@ class MetaspaceObj {
     }
   }
 
+  static bool is_training_data(Type type) {
+    return (type == Type::KlassTrainingDataType)  ||
+           (type == Type::MethodTrainingDataType) ||
+           (type == Type::CompileTrainingDataType);
+  }
+
   static MetaspaceObj::Type array_type(size_t elem_size) {
     switch (elem_size) {
     case 1: return TypeArrayU1Type;
@@ -412,6 +418,9 @@ class MetaspaceObj {
   void* operator new(size_t size, ClassLoaderData* loader_data,
                      size_t word_size,
                      Type type) throw();
+
+  // HACK -- this is used for allocating training data. See JDK-8331086
+  void* operator new(size_t size, MEMFLAGS flags) throw();
   void operator delete(void* p) { ShouldNotCallThis(); }
 
   // Declare a *static* method with the same signature in any subclass of MetaspaceObj

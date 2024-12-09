@@ -70,6 +70,15 @@ void MethodCounters::clear_counters() {
 
 // TODO: MethodCounters::metaspace_pointers_do
 
+#if INCLUDE_CDS
+void MethodCounters::remove_unshareable_info() {
+  _method_training_data = nullptr;
+}
+
+void MethodCounters::restore_unshareable_info(TRAPS) {
+}
+#endif // INCLUDE_CDS
+
 void MethodCounters::print_value_on(outputStream* st) const {
   assert(is_methodCounters(), "must be methodCounters");
   st->print("method counters");

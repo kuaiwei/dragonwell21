@@ -141,6 +141,11 @@ class MethodCounters : public Metadata {
             Atomic::replace_if_null(&_method_training_data, tdata));
   }
 
+#if INCLUDE_CDS
+  void remove_unshareable_info();
+  void restore_unshareable_info(TRAPS);
+#endif
+
   virtual void print_value_on(outputStream* st) const;
 
 };
