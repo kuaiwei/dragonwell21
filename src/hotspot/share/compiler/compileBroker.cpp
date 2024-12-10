@@ -48,6 +48,7 @@
 #include "oops/methodData.hpp"
 #include "oops/method.inline.hpp"
 #include "oops/oop.inline.hpp"
+#include "oops/trainingData.hpp"
 #include "prims/jvmtiExport.hpp"
 #include "prims/nativeLookup.hpp"
 #include "prims/whitebox.hpp"
@@ -340,6 +341,16 @@ void CompileQueue::add(CompileTask* task) {
 
   if (LogCompilation && xtty != nullptr) {
     task->log_task_queued();
+  }
+
+  if (TrainingData::need_data() &&
+      // !CDSConfig::is_dumping_final_static_archive()) { // FIXME: !!! MetaspaceShared::preload_and_dump() temporarily enables RecordTraining !!!
+      !UseNewCode3) { // TODO:
+    CompileTrainingData* tdata = CompileTrainingData::make(task);
+    if (tdata != nullptr) {
+      tdata->record_compilation_queued(task);
+      task->set_training_data(tdata);
+    }
   }
 
   // Notify CompilerThreads that a task is available.
@@ -2151,6 +2162,10 @@ void CompileBroker::invoke_compiler_on_method(CompileTask* task) {
   bool should_break = false;
   const int task_level = task->comp_level();
   AbstractCompiler* comp = task->compiler();
+  CompileTrainingData* tdata = task->training_data();
+  assert(tdata == nullptr || TrainingData::need_data() ||
+         // CDSConfig::is_dumping_preimage_static_archive(), ""); // FIXME: MetaspaceShared::preload_and_dump() messes with RecordTraining flag
+         UseNewCode4, "");
   {
     // create the handle inside it's own block so it can't
     // accidentally be referenced once the thread transitions to
@@ -2166,6 +2181,10 @@ void CompileBroker::invoke_compiler_on_method(CompileTask* task) {
     }
 
     DTRACE_METHOD_COMPILE_BEGIN_PROBE(method, compiler_name(task_level));
+  }
+
+  if (tdata != nullptr) {
+    tdata->record_compilation_start(task);
   }
 
   should_break = directive->BreakAtCompileOption || task->check_break_at_flags();
@@ -2321,6 +2340,10 @@ void CompileBroker::invoke_compiler_on_method(CompileTask* task) {
         FormatBufferResource("COMPILE SKIPPED: %s",      failure_reason);
       task->print(tty, msg);
     }
+  }
+
+  if (tdata != nullptr) {
+    tdata->record_compilation_start(task);
   }
 
   methodHandle method(thread, task->method());

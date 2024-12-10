@@ -67,6 +67,7 @@
 #include "oops/objArrayOop.hpp"
 #include "oops/oop.inline.hpp"
 #include "oops/oopHandle.hpp"
+#include "oops/trainingData.hpp"
 #include "prims/jvmtiExport.hpp"
 #include "runtime/arguments.hpp"
 #include "runtime/globals_extension.hpp"
@@ -650,6 +651,13 @@ void MetaspaceShared::prepare_for_dumping() {
 void MetaspaceShared::preload_and_dump() {
   EXCEPTION_MARK;
   ResourceMark rm(THREAD);
+  HandleMark hm(THREAD);
+  // if (CDSConfig::is_dumping_final_static_archive() && PrintTrainingInfo) {
+  // if (UseNewCode3 && PrintTrainingInfo) {
+  if (UseNewCode && PrintTrainingInfo) {
+    tty->print_cr("==================== archived_training_data ** before dumping ====================");
+    TrainingData::print_archived_training_data_on(tty);
+  }
   preload_and_dump_impl(THREAD);
   if (HAS_PENDING_EXCEPTION) {
     if (PENDING_EXCEPTION->is_a(vmClasses::OutOfMemoryError_klass())) {
@@ -777,6 +785,14 @@ void MetaspaceShared::preload_and_dump_impl(TRAPS) {
   link_shared_classes(false/*not from jcmd*/, CHECK);
   log_info(cds)("Rewriting and linking classes: done");
 
+  // if (CDSConfig::is_dumping_final_static_archive()) {
+  if (UseNewCode3) {
+    assert(RecordTraining == false, "must be");
+    RecordTraining = true;
+  }
+
+  TrainingData::init_dumptime_table(CHECK); // captures TrainingDataSetLocker
+
 #if INCLUDE_CDS_JAVA_HEAP
   StringTable::allocate_shared_strings_array(CHECK);
   ArchiveHeapWriter::init();
@@ -787,6 +803,53 @@ void MetaspaceShared::preload_and_dump_impl(TRAPS) {
 
   VM_PopulateDumpSharedSpace op;
   VMThread::execute(&op);
+
+  bool status;
+  // if (CDSConfig::is_dumping_preimage_static_archive()) {
+  if (UseNewCode4) {
+    /*
+    if ((status = write_static_archive(&builder, mapinfo, heap_info))) {
+      fork_and_dump_final_static_archive();
+    }
+    */
+    status = true;
+  // } else if (CDSConfig::is_dumping_final_static_archive()) {
+  } else if (UseNewCode3) {
+    RecordTraining = false;
+    /*
+    if (StoreCachedCode && CachedCodeFile != nullptr) { // FIXME: new workflow -- remove the CachedCodeFile flag
+      if (log_is_enabled(Info, cds, jit)) {
+        CDSAccess::test_heap_access_api();
+      }
+      */
+
+      // We have just created the final image. Let's run the AOT compiler
+      if (PrintTrainingInfo) {
+        tty->print_cr("==================== archived_training_data ** after dumping ====================");
+        TrainingData::print_archived_training_data_on(tty);
+      }
+
+      /*
+      CDSConfig::enable_dumping_cached_code();
+      {
+        builder.start_cc_region();
+        Precompiler::compile_cached_code(&builder, CHECK);
+        builder.end_cc_region();
+      }
+      CDSConfig::disable_dumping_cached_code();
+
+      SCCache::close(); // Write final data and close archive
+    }
+    status = write_static_archive(&builder, mapinfo, heap_info);
+    */
+    status = true;
+  } else {
+    // status = write_static_archive(&builder, mapinfo, heap_info);
+    status = true;
+  }
+  if (!status) {
+    THROW_MSG(vmSymbols::java_io_IOException(), "Encountered error while dumping");
+  }
 }
 
 // Returns true if the class's status has changed.

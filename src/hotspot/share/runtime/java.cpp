@@ -55,6 +55,7 @@
 #include "oops/objArrayOop.hpp"
 #include "oops/oop.inline.hpp"
 #include "oops/symbol.hpp"
+#include "oops/trainingData.hpp"
 #include "prims/jvmtiAgentList.hpp"
 #include "prims/jvmtiExport.hpp"
 #include "runtime/continuation.hpp"
@@ -229,6 +230,13 @@ void print_bytecode_count() {
 
 // General statistics printing (profiling ...)
 void print_statistics() {
+
+#if INCLUDE_CDS
+  if (ReplayTraining && PrintTrainingInfo) {
+    TrainingData::print_archived_training_data_on(tty);
+  }
+#endif
+
   if (CITime) {
     CompileBroker::print_times();
   }
@@ -346,6 +354,12 @@ void print_statistics() {
     print_method_profiling_data();
   }
 
+#if INCLUDE_CDS
+  if (ReplayTraining && PrintTrainingInfo) {
+    TrainingData::print_archived_training_data_on(tty);
+  }
+#endif
+
   if (CITime) {
     CompileBroker::print_times();
   }
@@ -449,7 +463,15 @@ void before_exit(JavaThread* thread, bool halt) {
   MethodProfiler::process_method_hotness();
   // Dynamic CDS dumping must happen whilst we can still reliably
   // run Java code.
-  DynamicArchive::dump_at_exit(thread, ArchiveClassesAtExit);
+  // if (CDSConfig::is_dumping_preimage_static_archive()) {
+  if (UseNewCode4) {
+    // Creating the hotspot.cds.preimage file
+    // MetaspaceShared::preload_and_dump(thread);
+    MetaspaceShared::preload_and_dump();
+  } else {
+    DynamicArchive::dump_at_exit(thread, ArchiveClassesAtExit);
+  }
+  // DynamicArchive::dump_at_exit(thread, ArchiveClassesAtExit);
   assert(!thread->has_pending_exception(), "must be");
 #endif
 

@@ -123,6 +123,7 @@ void CompileTask::initialize(int compile_id,
   _nm_total_size = 0;
   _failure_reason = nullptr;
   _failure_reason_on_C_heap = false;
+  _training_data = nullptr;
 
   if (LogCompilation) {
     if (hot_method.not_null()) {

@@ -34,6 +34,7 @@
 #include "ci/ciReplay.hpp"
 #include "ci/ciSymbols.hpp"
 #include "ci/ciUtilities.inline.hpp"
+#include "compiler/compileTask.hpp"
 #include "compiler/abstractCompiler.hpp"
 #include "compiler/compilerDefinitions.inline.hpp"
 #include "compiler/methodLiveness.hpp"
@@ -47,6 +48,7 @@
 #include "oops/generateOopMap.hpp"
 #include "oops/method.inline.hpp"
 #include "oops/oop.inline.hpp"
+#include "oops/trainingData.hpp"
 #include "prims/methodHandles.hpp"
 #include "runtime/deoptimization.hpp"
 #include "runtime/handles.inline.hpp"
@@ -1132,6 +1134,14 @@ int ciMethod::inline_instructions_size() {
         _inline_instructions_size = isize > 0 ? isize : 0;
       } else {
         _inline_instructions_size = 0;
+      }
+      if (TrainingData::need_data()) {
+        CompileTrainingData* ctd = CURRENT_ENV->task()->training_data();
+        if (ctd != nullptr) {
+          methodHandle mh(Thread::current(), get_Method());
+          MethodTrainingData* this_mtd = MethodTrainingData::make(mh);
+          ctd->ci_records().ciMethod__inline_instructions_size.append_if_missing(_inline_instructions_size, this_mtd);
+        }
       }
     );
   }
