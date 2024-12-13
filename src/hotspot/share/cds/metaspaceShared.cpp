@@ -794,12 +794,19 @@ void MetaspaceShared::preload_and_dump_impl(TRAPS) {
   TrainingData::init_dumptime_table(CHECK); // captures TrainingDataSetLocker
 
 #if INCLUDE_CDS_JAVA_HEAP
+  if (!UseNewCode4) {
   StringTable::allocate_shared_strings_array(CHECK);
   ArchiveHeapWriter::init();
   if (use_full_module_graph()) {
     HeapShared::reset_archived_object_states(CHECK);
   }
+  }
 #endif
+
+  if (UseNewCode) {
+    // test
+    TrainingData::dump_training_data();
+  }
 
   VM_PopulateDumpSharedSpace op;
   VMThread::execute(&op);

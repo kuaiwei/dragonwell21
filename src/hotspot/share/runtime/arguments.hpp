@@ -523,7 +523,7 @@ class Arguments : AllStatic {
 
   static bool has_jfr_option() NOT_JFR_RETURN_(false);
 
-  static bool is_dumping_archive() { return DumpSharedSpaces || DynamicDumpSharedSpaces; }
+  static bool is_dumping_archive() { return UseNewCode4 || DumpSharedSpaces || DynamicDumpSharedSpaces; }
 
   static void assert_is_dumping_archive() {
     assert(Arguments::is_dumping_archive(), "dump time only");

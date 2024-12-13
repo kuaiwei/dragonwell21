@@ -506,6 +506,16 @@ void TrainingData::init_dumptime_table(TRAPS) {
     }
   }
 
+  if (PrintTrainingInfo) {
+    tty->print_cr("======Print dumptime_training_data");
+    TrainingDataPrinter tdp(tty);
+    for (int j = 0; j < _dumptime_training_data_dictionary->length(); j++) {
+      TrainingData* td = _dumptime_training_data_dictionary->at(j).training_data();
+      tdp.do_value(td);
+    }
+    tty->print_cr("======End Print dumptime_training_data");
+  }
+
   RecompilationSchedule::prepare(CHECK);
 }
 
@@ -813,9 +823,11 @@ void TrainingData::DepList<T>::prepare(ClassLoaderData* loader_data) {
 void TrainingDataPrinter::do_value(TrainingData* td) {
 #ifdef ASSERT
 #if INCLUDE_CDS
+  if (!UseNewCode) {
   TrainingData::Key key(td->key()->meta());
   assert(td == TrainingData::archived_training_data_dictionary()->lookup(td->key(), TrainingData::Key::cds_hash(td->key()), -1), "");
   assert(td == TrainingData::archived_training_data_dictionary()->lookup(&key, TrainingData::Key::cds_hash(&key), -1), "");
+  }
 #endif
 #endif // ASSERT
 

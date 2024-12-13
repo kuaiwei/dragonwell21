@@ -186,7 +186,7 @@ DumpTimeClassInfo* SystemDictionaryShared::get_info(InstanceKlass* k) {
 
 DumpTimeClassInfo* SystemDictionaryShared::get_info_locked(InstanceKlass* k) {
   assert_lock_strong(DumpTimeTable_lock);
-  assert(!k->is_shared(), "sanity");
+//assert(!k->is_shared(), "sanity"); // FIXME new workflow
   DumpTimeClassInfo* info = _dumptime_table->get_info(k);
   assert(info != nullptr, "must be");
   return info;
