@@ -418,6 +418,14 @@ private:
   static bool is_a_test_class_in_unnamed_module(Klass* ik) NOT_CDS_JAVA_HEAP_RETURN_(false);
 };
 
+class CachedCodeDirectoryInternal {
+  int _permanent_oop_count;
+  int* _permanent_oop_offsets; // offset of each permanent object from the bottom of the archived heap
+public:
+  void dumptime_init_internal();
+  void runtime_init_internal();
+};
+
 #if INCLUDE_CDS_JAVA_HEAP
 class DumpedInternedStrings :
   public ResourceHashtable<oop, bool,

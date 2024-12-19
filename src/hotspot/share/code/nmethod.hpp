@@ -33,6 +33,7 @@ class DirectiveSet;
 class DebugInformationRecorder;
 class JvmtiThreadState;
 class OopIterateClosure;
+class SCCEntry;
 
 // nmethods (native methods) are the compiled code versions of Java methods.
 //
@@ -255,6 +256,8 @@ class nmethod : public CompiledMethod {
   int          _compile_id;            // which compilation made this nmethod
   CompLevel    _comp_level;            // compilation level (s1)
 
+  SCCEntry* _scc_entry;
+
   int _num_stack_arg_slots;                  // Number of arguments passed on the stack
 
 #if INCLUDE_RTM_OPT
@@ -272,6 +275,9 @@ class nmethod : public CompiledMethod {
   bool _is_unlinked;
   // used by jvmti to track if an event has been posted for this nmethod.
   bool _load_reported;
+
+  bool _preloaded;
+  bool _has_clinit_barriers;
 
   // Protected by CompiledMethod_lock
   volatile signed char _state;         // {not_installed, in_use, not_used, not_entrant}
@@ -516,6 +522,10 @@ class nmethod : public CompiledMethod {
     assert(!has_flushed_dependencies(), "should only happen once");
     _has_flushed_dependencies = 1;
   }
+  bool  preloaded() const                         { return _preloaded; }
+  void  set_preloaded(bool z)                     { _preloaded = z; }
+  bool  has_clinit_barriers() const               { return _has_clinit_barriers; }
+  void  set_has_clinit_barriers(bool z)           { _has_clinit_barriers = z; }
 
   int   comp_level() const                        { return _comp_level; }
 
@@ -642,6 +652,9 @@ public:
   void copy_scopes_data(address buffer, int size);
 
   int orig_pc_offset() { return _orig_pc_offset; }
+
+  SCCEntry* scc_entry() const { return _scc_entry; }
+  bool is_scc() const { return scc_entry() != nullptr; }
 
   // Post successful compilation
   void post_compiled_method(CompileTask* task);

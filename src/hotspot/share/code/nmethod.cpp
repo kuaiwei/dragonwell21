@@ -687,6 +687,8 @@ void nmethod::init_defaults(CodeBuffer *code_buffer, CodeOffsets* offsets) {
   _has_monitors               = 0;
   _has_flushed_dependencies   = 0;
   _load_reported              = 0; // jvmti state
+  _preloaded                  = 0;
+  _has_clinit_barriers        = 0;
 
   _deoptimization_status      = not_marked;
 

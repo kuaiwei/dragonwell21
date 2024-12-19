@@ -398,6 +398,49 @@
   product(int, RecordOptCompilationOrderInterval, 10,                       \
           "Sampling interval for RecordOptCompilationOrder")                \
                                                                             \
+  product(bool, StoreCachedCode, false,                                     \
+          "Store cached compiled code")                                     \
+                                                                            \
+  product(bool, LoadCachedCode, false,                                      \
+          "Load cached compiled code")                                      \
+                                                                            \
+  product(uint, DisableCachedCode, 0,                                       \
+          "Disable cached code on some compilation levels "                 \
+          "(T1=1; T2=2; T4=4; T5/preload=8")                                \
+                                                                            \
+  product(uint, ClassInitBarrierMode, 0,                                    \
+          "Produce and use startup code which could be called "             \
+          "on first method invocation, add class initialization barriers, " \
+          "other checks and constrains if needed "                          \
+          "(0: no barriers; 1: uncommon trap; 2: full barrier)")            \
+                                                                            \
+  product(bool, StressClassInitBarriers, false, DIAGNOSTIC,                 \
+          "Force slow path in class initialization barriers")               \
+                                                                            \
+  product(ccstr, CachedCodeFile, "code.jsa",                                \
+          "File with cached compiled code")                                 \
+                                                                            \
+  product(bool, PrecompileCode, false,                                      \
+          "Precompile code")                                                \
+                                                                            \
+  product(bool, PrecompileOnlyAndExit, false,                               \
+          "Exit after precompilation step is over")                         \
+                                                                            \
+  product(bool, UseMetadataPointers, true,                                  \
+          "Store Metadata pointers in Relocation Info for cached code")     \
+                                                                            \
+  product(bool, UseCodeLoadThread, true,                                    \
+          "Use separate thread for cached code load")                       \
+                                                                            \
+  product(uint, SCLoadStart, 0,                                             \
+          "The id of the first cached code to load")                        \
+                                                                            \
+  product(uint, SCLoadStop, max_jint,                                       \
+          "The id of the last cached code to load")                         \
+                                                                            \
+  product(uint, CachedCodeMaxSize, 10*M,                                    \
+          "Buffer size in bytes for code caching")                          \
+                                                                            \
 
 
 // end of COMPILER_FLAGS
