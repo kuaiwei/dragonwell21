@@ -469,6 +469,7 @@ public:
 static CachedCodeDirectory* _cached_code_directory = nullptr;
 
 #if INCLUDE_CDS_JAVA_HEAP
+/* TODO: disable new workflow
 void SCCache::new_workflow_start_writing_cache() {
   CachedCodeDirectory* dir = (CachedCodeDirectory*)CDSAccess::allocate_from_code_cache(sizeof(CachedCodeDirectory));
   _cached_code_directory = dir;
@@ -509,6 +510,7 @@ void SCCache::new_workflow_load_cache() {
                   pointer_delta((address)_cached_code_directory->_my_data, (address)_cached_code_directory, 1));
   }
 }
+*/
 #endif // INCLUDE_CDS_JAVA_HEAP
 
 #define DATA_ALIGNMENT HeapWordSize
@@ -2708,7 +2710,8 @@ bool SCCache::write_oop(jobject& jo) {
       return false;
     }
     ResourceMark rm;
-    size_t length_sz = 0;
+    // size_t length_sz = 0;
+    int length_sz = 0;
     const char* string = java_lang_String::as_utf8_string(obj, length_sz);
     int length = (int)length_sz; // FIXME -- cast
     length++; // write tailing '/0'
@@ -3037,14 +3040,17 @@ bool SCCReader::compile(ciEnv* env, ciMethod* target, int entry_bci, AbstractCom
   LogStreamHandle(Debug, scc, nmethod) log;
   if (log.is_enabled()) {
     FlagSetting fs(PrintRelocations, true);
-    buffer.print_on(&log);
+    // buffer.print_on(&log);
+    buffer.print();
     buffer.decode();
   }
 #endif
 
+  /*
   if (VerifyCachedCode) {
     return false;
   }
+  */
 
   // Register nmethod
   TraceTime t1("SC total nmethod register time", &_t_totalRegister, enable_timers(), false);
@@ -3091,9 +3097,11 @@ SCCEntry* SCCache::store_nmethod(const methodHandle& method,
                      bool has_wide_vectors,
                      bool has_monitors,
                      bool has_scoped_access) {
+  /* TODO: CDSConfig
   if (!CDSConfig::is_dumping_cached_code()) {
     return nullptr; // The metadata and heap in the CDS image haven't been finalized yet.
   }
+  */
   if (entry_bci != InvocationEntryBci) {
     return nullptr; // No OSR
   }
@@ -3191,8 +3199,11 @@ SCCEntry* SCCache::write_nmethod(const methodHandle& method,
   // without application run. Ignore decompilation counters in such case.
   // Also ignore it for C1 code because it is decompiled unconditionally
   // when C2 generated code is published.
+  /*
   bool ignore_decompile = (comp_level == CompLevel_limited_profile) ||
                           CDSConfig::is_dumping_final_static_archive();
+  */
+  bool ignore_decompile = false;
 
   // Write name
   uint name_offset = 0;
@@ -3369,9 +3380,11 @@ SCCEntry* SCCache::write_nmethod(const methodHandle& method,
     log_info(scc, nmethod)("%d (L%d): Wrote nmethod '%s'%s to Startup Code Cache '%s'",
                            comp_id, (int)comp_level, name, (_for_preload ? " (for preload)" : ""), _cache_path);
   }
+  /*
   if (VerifyCachedCode) {
     return nullptr;
   }
+  */
   return entry;
 }
 
@@ -3495,7 +3508,8 @@ void SCCache::print_unused_entries_on(outputStream* st) {
               mtd->iterate_all_compiles([&](CompileTrainingData* ctd) {
                 if ((uint)ctd->level() == entry->comp_level()) {
                   if (ctd->init_deps_left() == 0) {
-                    nmethod* nm = mtd->holder()->code();
+                    // nmethod* nm = mtd->holder()->code();
+                    CompiledMethod* nm = mtd->holder()->code();
                     if (nm == nullptr) {
                       if (mtd->holder()->queued_for_compilation()) {
                         return; // scheduled for compilation
@@ -3625,7 +3639,7 @@ void SCAddressTable::init() {
   SET_ADDRESS(_extrs, SharedRuntime::lmul);
   SET_ADDRESS(_extrs, SharedRuntime::lrem);
 #if INCLUDE_JVMTI
-  SET_ADDRESS(_extrs, &JvmtiExport::_should_notify_object_alloc);
+  // TODO SET_ADDRESS(_extrs, &JvmtiExport::_should_notify_object_alloc);
 #endif /* INCLUDE_JVMTI */
   BarrierSet* bs = BarrierSet::barrier_set();
   if (bs->is_a(BarrierSet::CardTableBarrierSet)) {
@@ -3670,15 +3684,14 @@ void SCAddressTable::init() {
     SET_ADDRESS(_extrs, *p++);
   }
   // Stubs
-  SET_ADDRESS(_stubs, StubRoutines::method_entry_barrier());
+  // SET_ADDRESS(_stubs, StubRoutines::method_entry_barrier());
+  SET_ADDRESS(_stubs, StubRoutines::x86::method_entry_barrier());
   SET_ADDRESS(_stubs, StubRoutines::forward_exception_entry());
-/*
   SET_ADDRESS(_stubs, StubRoutines::throw_AbstractMethodError_entry());
   SET_ADDRESS(_stubs, StubRoutines::throw_IncompatibleClassChangeError_entry());
   SET_ADDRESS(_stubs, StubRoutines::throw_NullPointerException_at_call_entry());
   SET_ADDRESS(_stubs, StubRoutines::throw_StackOverflowError_entry());
   SET_ADDRESS(_stubs, StubRoutines::throw_delayed_StackOverflowError_entry());
-*/
   SET_ADDRESS(_stubs, StubRoutines::atomic_xchg_entry());
   SET_ADDRESS(_stubs, StubRoutines::atomic_cmpxchg_entry());
   SET_ADDRESS(_stubs, StubRoutines::atomic_cmpxchg_long_entry());
@@ -3689,7 +3702,8 @@ void SCAddressTable::init() {
   SET_ADDRESS(_stubs, StubRoutines::cont_returnBarrier());
   SET_ADDRESS(_stubs, StubRoutines::cont_returnBarrierExc());
 
-  JFR_ONLY(SET_ADDRESS(_stubs, SharedRuntime::jfr_write_checkpoint());)
+  // JFR_ONLY(SET_ADDRESS(_stubs, SharedRuntime::jfr_write_checkpoint());)
+  JFR_ONLY(SET_ADDRESS(_stubs, StubRoutines::jfr_write_checkpoint());)
 
 
   SET_ADDRESS(_stubs, StubRoutines::jbyte_arraycopy());
@@ -3847,11 +3861,13 @@ void SCAddressTable::init() {
   SET_ADDRESS(_blobs, SharedRuntime::polling_page_vectors_safepoint_handler_blob()->entry_point());
 #endif
 
+  /*
   SET_ADDRESS(_blobs, SharedRuntime::throw_AbstractMethodError_entry());
   SET_ADDRESS(_blobs, SharedRuntime::throw_IncompatibleClassChangeError_entry());
   SET_ADDRESS(_blobs, SharedRuntime::throw_NullPointerException_at_call_entry());
   SET_ADDRESS(_blobs, SharedRuntime::throw_StackOverflowError_entry());
   SET_ADDRESS(_blobs, SharedRuntime::throw_delayed_StackOverflowError_entry());
+  */
 
   assert(_blobs_length <= _shared_blobs_max, "increase _shared_blobs_max to %d", _blobs_length);
   _final_blobs_length = _blobs_length;
@@ -3862,7 +3878,8 @@ void SCAddressTable::init() {
 void SCAddressTable::init_opto() {
 #ifdef COMPILER2
   // OptoRuntime Blobs
-  SET_ADDRESS(_C2_blobs, OptoRuntime::uncommon_trap_blob()->entry_point());
+  // SET_ADDRESS(_C2_blobs, OptoRuntime::uncommon_trap_blob()->entry_point());
+  SET_ADDRESS(_C2_blobs, SharedRuntime::uncommon_trap_blob()->entry_point());
   SET_ADDRESS(_C2_blobs, OptoRuntime::exception_blob()->entry_point());
   SET_ADDRESS(_C2_blobs, OptoRuntime::new_instance_Java());
   SET_ADDRESS(_C2_blobs, OptoRuntime::new_array_Java());
@@ -3879,7 +3896,7 @@ void SCAddressTable::init_opto() {
   SET_ADDRESS(_C2_blobs, OptoRuntime::rethrow_stub());
   SET_ADDRESS(_C2_blobs, OptoRuntime::slow_arraycopy_Java());
   SET_ADDRESS(_C2_blobs, OptoRuntime::register_finalizer_Java());
-  SET_ADDRESS(_C2_blobs, OptoRuntime::class_init_barrier_Java());
+  // TODO: SET_ADDRESS(_C2_blobs, OptoRuntime::class_init_barrier_Java());
 #if INCLUDE_JVMTI
   SET_ADDRESS(_C2_blobs, OptoRuntime::notify_jvmti_vthread_start());
   SET_ADDRESS(_C2_blobs, OptoRuntime::notify_jvmti_vthread_end());
@@ -3897,8 +3914,10 @@ void SCAddressTable::init_opto() {
 void SCAddressTable::init_c1() {
 #ifdef COMPILER1
   // Runtime1 Blobs
-  for (int i = 0; i < (int)(C1StubId::NUM_STUBIDS); i++) {
-    C1StubId id = (C1StubId)i;
+  // for (int i = 0; i < (int)(C1StubId::NUM_STUBIDS); i++) {
+  for (int i = 0; i < (int)(Runtime1::number_of_ids); i++) {
+    // C1StubId id = (C1StubId)i;
+    Runtime1::StubID id = (Runtime1::StubID)i;
     if (Runtime1::blob_for(id) == nullptr) {
       log_info(scc, init)("C1 blob %s is missing", Runtime1::name_for(id));
       continue;

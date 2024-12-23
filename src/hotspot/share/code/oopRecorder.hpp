@@ -243,5 +243,20 @@ class OopRecorder : public ResourceObj {
 #endif
 };
 
+// Class is used to record and retrive external addresses
+// for Relocation info in compiled code and stubs.
+class ExternalsRecorder : public CHeapObj<mtCode> {
+private:
+  Arena  _arena;
+  ValueRecorder<address> _externals;
+  static ExternalsRecorder* _recorder;
+  ExternalsRecorder();
+public:
+  static void initialize();
+  static int find_index(address adr);
+  static address at(int index);
+  static int count();
+  static void print_statistics() PRODUCT_RETURN;
+};
 
 #endif // SHARE_CODE_OOPRECORDER_HPP

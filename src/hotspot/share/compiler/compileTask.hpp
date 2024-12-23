@@ -94,6 +94,7 @@ class CompileTask : public CHeapObj<mtCompiler> {
   CodeSection::csize_t _nm_total_size;
   CodeSection::csize_t _nm_insts_size;
   DirectiveSet*  _directive;
+  SCCEntry*            _scc_entry;
 #if INCLUDE_JVMCI
   bool                 _has_waiter;
   // Compilation state for a blocking JVMCI compilation
@@ -135,6 +136,9 @@ class CompileTask : public CHeapObj<mtCompiler> {
   bool         is_complete() const               { return _is_complete; }
   bool         is_blocking() const               { return _is_blocking; }
   bool         is_success() const                { return _is_success; }
+  bool         is_scc() const                    { return _scc_entry != nullptr; }
+  void         clear_scc()                       { _scc_entry = nullptr; }
+  SCCEntry*    scc_entry()                       { return _scc_entry; }
   DirectiveSet* directive() const                { return _directive; }
   CodeSection::csize_t nm_content_size() { return _nm_content_size; }
   void         set_nm_content_size(CodeSection::csize_t size) { _nm_content_size = size; }
@@ -142,6 +146,7 @@ class CompileTask : public CHeapObj<mtCompiler> {
   void         set_nm_insts_size(CodeSection::csize_t size) { _nm_insts_size = size; }
   CodeSection::csize_t nm_total_size() { return _nm_total_size; }
   void         set_nm_total_size(CodeSection::csize_t size) { _nm_total_size = size; }
+  bool         preload() const                   { return (_compile_reason == Reason_Preload); }
   bool         can_become_stale() const          {
     switch (_compile_reason) {
       case Reason_BackedgeCount:

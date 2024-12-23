@@ -608,9 +608,9 @@ public:
   static void print_timers_on(outputStream* st);
   static void print_unused_entries_on(outputStream* st);
 
-  static void new_workflow_start_writing_cache() NOT_CDS_JAVA_HEAP_RETURN;
-  static void new_workflow_end_writing_cache() NOT_CDS_JAVA_HEAP_RETURN;
-  static void new_workflow_load_cache() NOT_CDS_JAVA_HEAP_RETURN;
+  // static void new_workflow_start_writing_cache() NOT_CDS_JAVA_HEAP_RETURN;
+  // static void new_workflow_end_writing_cache() NOT_CDS_JAVA_HEAP_RETURN;
+  // static void new_workflow_load_cache() NOT_CDS_JAVA_HEAP_RETURN;
 };
 
 // code cache internal runtime constants area used by AOT code

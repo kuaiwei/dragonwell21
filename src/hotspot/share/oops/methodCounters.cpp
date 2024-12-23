@@ -28,6 +28,7 @@
 #include "runtime/handles.inline.hpp"
 
 MethodCounters::MethodCounters(const methodHandle& mh) :
+  _method(mh()),
   _method_training_data(nullptr),
   _prev_time(0),
   _rate(0),

@@ -40,6 +40,9 @@ class MethodCounters : public Metadata {
   InvocationCounter _invocation_counter;         // Incremented before each activation of the method - used to trigger frequency-based optimizations
   InvocationCounter _backedge_counter;           // Incremented before each backedge taken - used to trigger frequency-based optimizations
 
+  // Back pointer to the Method*
+  Method* _method;
+
   MethodTrainingData* _method_training_data;
   jlong             _prev_time;                   // Previous time the rate was acquired
   float             _rate;                        // Events (invocation and backedge counter increments) per millisecond
@@ -58,6 +61,8 @@ class MethodCounters : public Metadata {
   MethodCounters(const methodHandle& mh);
  public:
   virtual bool is_methodCounters() const { return true; }
+
+  Method* method() const { return _method; }
 
   static MethodCounters* allocate_no_exception(const methodHandle& mh);
   static MethodCounters* allocate_with_exception(const methodHandle& mh, TRAPS);

@@ -26,6 +26,7 @@
 #define SHARE_GC_G1_G1BARRIERSET_HPP
 
 #include "gc/g1/g1DirtyCardQueue.hpp"
+#include "gc/g1/heapRegion.hpp"
 #include "gc/g1/g1SATBMarkQueueSet.hpp"
 #include "gc/shared/cardTable.hpp"
 #include "gc/shared/cardTableBarrierSet.hpp"
@@ -89,6 +90,8 @@ class G1BarrierSet: public CardTableBarrierSet {
   static G1SATBMarkQueueSet& satb_mark_queue_set() {
     return g1_barrier_set()->_satb_mark_queue_set;
   }
+
+  virtual uint grain_shift() { return HeapRegion::LogOfHRGrainBytes; }
 
   static G1DirtyCardQueueSet& dirty_card_queue_set() {
     return g1_barrier_set()->_dirty_card_queue_set;

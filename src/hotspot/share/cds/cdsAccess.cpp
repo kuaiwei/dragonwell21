@@ -169,7 +169,8 @@ void CDSAccess::test_heap_access_api() {
 // new workflow only
 void* CDSAccess::allocate_from_code_cache(size_t size) {
   // assert(CDSConfig::is_dumping_final_static_archive(), "must be");
-  return (void*)ArchiveBuilder::cc_region_alloc(size);
+  // TODO: return (void*)ArchiveBuilder::cc_region_alloc(size);
+  return nullptr;
 }
 
 size_t CDSAccess::get_cached_code_size() {
@@ -192,7 +193,8 @@ void CDSAccess::set_pointer(address* ptr, address value) {
 bool CDSAccess::map_cached_code(ReservedSpace rs) {
   FileMapInfo* static_mapinfo = FileMapInfo::current_info();
   assert(UseSharedSpaces && static_mapinfo != nullptr, "must be");
-  return static_mapinfo->map_cached_code_region(rs);
+  // TODO: return static_mapinfo->map_cached_code_region(rs);
+  return false;
 }
 
 #endif // INCLUDE_CDS_JAVA_HEAP
