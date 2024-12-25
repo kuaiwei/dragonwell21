@@ -2497,7 +2497,10 @@ jobject SCCReader::read_oop(JavaThread* thread, const methodHandle& comp_method)
     int k = *(int*)addr(code_offset);
     code_offset += sizeof(int);
     set_read_position(code_offset);
-    obj = CDSAccess::get_archived_object(k);
+    // obj = CDSAccess::get_archived_object(k);
+    // CDSAccess::get_archived_object is not implemented
+    set_lookup_failed();
+    return nullptr;
   } else if (kind == DataKind::String) {
     code_offset = read_position();
     int length = *(int*)addr(code_offset);
@@ -2525,7 +2528,10 @@ jobject SCCReader::read_oop(JavaThread* thread, const methodHandle& comp_method)
     int k = *(int*)addr(code_offset);
     code_offset += sizeof(int);
     set_read_position(code_offset);
-    obj = CDSAccess::get_archived_object(k);
+    // obj = CDSAccess::get_archived_object(k);
+    // CDSAccess::get_archived_object is not implemented
+    set_lookup_failed();
+    return nullptr;
   } else {
     set_lookup_failed();
     log_info(scc)("%d (L%d): Unknown oop's kind: %d",
@@ -2691,6 +2697,7 @@ bool SCCache::write_oop(jobject& jo) {
       }
     }
   } else if (java_lang_String::is_instance(obj)) { // herere
+    /* CDSAccess::get_archived_object_permanent_index is not implemented
     int k = CDSAccess::get_archived_object_permanent_index(obj);  // k >= 0 means obj is a "permanent heap object"
     if (k >= 0) {
       kind = DataKind::String_Shared;
@@ -2704,6 +2711,7 @@ bool SCCache::write_oop(jobject& jo) {
       }
       return true;
     }
+    */
     kind = DataKind::String;
     n = write_bytes(&kind, sizeof(int));
     if (n != sizeof(int)) {
@@ -2742,6 +2750,7 @@ bool SCCache::write_oop(jobject& jo) {
       return false;
     }
   } else { // herere
+    /* CDSAccess::get_archived_object_permanent_index is not implemented
     int k = CDSAccess::get_archived_object_permanent_index(obj);  // k >= 0 means obj is a "permanent heap object"
     if (k >= 0) {
       kind = DataKind::MH_Oop_Shared;
@@ -2755,6 +2764,7 @@ bool SCCache::write_oop(jobject& jo) {
       }
       return true;
     }
+    */
     // Unhandled oop - bailout
     set_lookup_failed();
     log_info(scc, nmethod)("%d (L%d): Unhandled obj: " PTR_FORMAT " : %s",
@@ -3059,12 +3069,12 @@ bool SCCReader::compile(ciEnv* env, ciMethod* target, int entry_bci, AbstractCom
                        &buffer, frame_size,
                        oop_maps, &handler_table,
                        &nul_chk_table, compiler,
-                       _entry->has_clinit_barriers(),
-                       false,
+                       // _entry->has_clinit_barriers(),
+                       // false,
                        has_unsafe_access,
                        has_wide_vectors,
                        has_monitors,
-                       has_scoped_access,
+                       // has_scoped_access,
                        0, true /* install_code */,
                        (SCCEntry *)_entry);
   CompileTask* task = env->task();

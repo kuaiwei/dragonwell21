@@ -33,9 +33,11 @@
 #include "classfile/systemDictionary.hpp"
 #include "classfile/vmClasses.hpp"
 #include "classfile/vmSymbols.hpp"
+#include "code/SCCache.hpp"
 #include "compiler/compileBroker.hpp"
 #include "compiler/compileTask.hpp"
 #include "compiler/compilerThread.hpp"
+#include "compiler/precompiler.hpp"
 #include "gc/shared/barrierSet.hpp"
 #include "gc/shared/barrierSetNMethod.hpp"
 #include "gc/shared/gcVMOperations.hpp"
@@ -771,7 +773,7 @@ jint Threads::create_vm(JavaVMInitArgs* args, bool* canTryAgain) {
     Precompiler::compile_cached_code(CHECK_JNI_ERR);
     if (PrecompileOnlyAndExit) {
       SCCache::close();
-      log_vm_init_stats();
+      // TODO: log_vm_init_stats();
       vm_direct_exit(0, "Code precompiation is over");
     }
   }

@@ -25,7 +25,7 @@
 #include "precompiled.hpp"
 #include "cds/archiveBuilder.hpp"
 #include "cds/cdsAccess.hpp"
-#include "cds/cdsConfig.hpp"
+// #include "cds/cdsConfig.hpp"
 #include "cds/runTimeClassInfo.hpp"
 #include "code/SCCache.hpp"
 #include "compiler/compiler_globals.hpp"
@@ -58,7 +58,8 @@ private:
     CompileTask::CompileReason compile_reason = (_for_preload ? CompileTask::Reason_PrecompileForPreload
                                                               : CompileTask::Reason_Precompile);
     nmethod* nm = CompileBroker::compile_method(mh, InvocationEntryBci, _comp_level, methodHandle(), 0,
-                                                true /*requires_online_comp*/, compile_reason,
+                                                // true TODO: /*requires_online_comp*/,
+                                                compile_reason,
                                                 THREAD);
 
     uint entries_cnt_after = SCCache::store_entries_cnt();
@@ -220,10 +221,11 @@ void Precompiler::compile_cached_code(TRAPS) {
 
 // New workflow only
 void Precompiler::compile_cached_code(ArchiveBuilder* builder, TRAPS) {
-  assert(CDSConfig::is_dumping_final_static_archive() && StoreCachedCode, "sanity");
+  // assert(CDSConfig::is_dumping_final_static_archive() && StoreCachedCode, "sanity");
   if (TrainingData::have_data()) {
     ResourceMark rm;
 
+#if 0   // TODO: enable new workflow
     SCCache::new_workflow_start_writing_cache();
 
     {
@@ -243,5 +245,6 @@ void Precompiler::compile_cached_code(ArchiveBuilder* builder, TRAPS) {
     }
 
     SCCache::new_workflow_end_writing_cache();
+#endif
   }
 }

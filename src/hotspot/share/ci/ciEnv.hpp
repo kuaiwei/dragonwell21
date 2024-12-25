@@ -384,6 +384,8 @@ public:
                        bool                      has_wide_vectors,
                        bool                      has_monitors,
                        int                       immediate_oops_patched,
+                       bool                      install_code,
+                       SCCEntry*                 entry = nullptr,
                        RTMState                  rtm_state = NoRTM);
 
   // Access to certain well known ciObjects.

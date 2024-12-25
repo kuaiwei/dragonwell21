@@ -1035,6 +1035,8 @@ void ciEnv::register_method(ciMethod* target,
                             bool has_wide_vectors,
                             bool has_monitors,
                             int immediate_oops_patched,
+                            bool install_code,
+                            SCCEntry* entry,
                             RTMState  rtm_state) {
   VM_ENTRY_MARK;
   nmethod* nm = nullptr;
