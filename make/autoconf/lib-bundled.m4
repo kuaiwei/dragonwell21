@@ -156,11 +156,15 @@ AC_DEFUN_ONCE([LIB_SETUP_LIBPNG],
 AC_DEFUN_ONCE([LIB_SETUP_ZLIB],
 [
   AC_ARG_WITH(zlib, [AS_HELP_STRING([--with-zlib],
-      [use zlib from build system or OpenJDK source (system, bundled) @<:@bundled@:>@])])
+      [use zlib from build system or OpenJDK source (system, bundled, zlibng) @<:@bundled@:>@])])
 
   AC_CHECK_LIB(z, compress,
       [ ZLIB_FOUND=yes ],
       [ ZLIB_FOUND=no ])
+
+  AC_CHECK_LIB(zng, compress,
+      [ ZLIBNG_FOUND=yes ],
+      [ ZLIBNG_FOUND=no ])
 
   AC_MSG_CHECKING([for which zlib to use])
 
@@ -182,6 +186,7 @@ AC_DEFUN_ONCE([LIB_SETUP_ZLIB],
     with_zlib=${DEFAULT_ZLIB}
   fi
 
+  USE_ZLIB_NG=false
   if test "x${with_zlib}" = "xbundled"; then
     USE_EXTERNAL_LIBZ=false
     AC_MSG_RESULT([bundled])
@@ -211,6 +216,11 @@ AC_DEFUN_ONCE([LIB_SETUP_ZLIB],
       AC_MSG_RESULT([system not found])
       AC_MSG_ERROR([--with-zlib=system specified, but no zlib found!])
     fi
+  elif test "x${with_zlib}" = "xzlibng"; then
+    USE_EXTERNAL_LIBZ=true
+    if test "x${ZLIBNG_FOUND}" = "xyes"; then
+      USE_ZLIB_NG=true
+    fi
   else
     AC_MSG_ERROR([Invalid value for --with-zlib: ${with_zlib}, use 'system' or 'bundled'])
   fi
@@ -223,10 +233,15 @@ AC_DEFUN_ONCE([LIB_SETUP_ZLIB],
         LIBZ_CFLAGS="$LIBZ_CFLAGS -DHAVE_UNISTD_H"
     fi
   else
-    LIBZ_LIBS="-lz"
+    if test "x$USE_ZLIB_NG" = "xtrue"; then
+        LIBZ_LIBS="-lzng"
+    else
+        LIBZ_LIBS="-lz"
+    fi
   fi
 
   AC_SUBST(USE_EXTERNAL_LIBZ)
+  AC_SUBST(USE_ZLIB_NG)
   AC_SUBST(LIBZ_CFLAGS)
   AC_SUBST(LIBZ_LIBS)
 ])
