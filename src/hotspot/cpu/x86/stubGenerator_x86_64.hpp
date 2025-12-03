@@ -558,6 +558,7 @@ class StubGenerator: public StubCodeGenerator {
 
   // shared exception handler for FFM upcall stubs
   address generate_upcall_stub_exception_handler();
+  address generate_upcall_stub_load_target();
 
   void create_control_words();
 
