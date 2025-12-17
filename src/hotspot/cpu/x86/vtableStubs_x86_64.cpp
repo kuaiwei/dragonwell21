@@ -24,6 +24,7 @@
 
 #include "precompiled.hpp"
 #include "asm/macroAssembler.hpp"
+#include "code/codeCache.hpp"
 #include "code/vtableStubs.hpp"
 #include "interp_masm_x86.hpp"
 #include "memory/resourceArea.hpp"
@@ -129,7 +130,14 @@ VtableStub* VtableStubs::create_vtable_stub(int vtable_index) {
   // method (rbx): Method*
   // rcx: receiver
   address ame_addr = __ pc();
+#if INCLUDE_OPT_META_SIZE
+  __ mov64(rscratch1, (int64_t)(CodeCache::low_bound()));
+  __ movl(rscratch2, Address(rbx, Method::from_compiled_offset()));
+  __ addptr(rscratch1, rscratch2);
+  __ jmp(rscratch1);
+#else
   __ jmp( Address(rbx, Method::from_compiled_offset()));
+#endif
 
   masm->flush();
   slop_bytes += index_dependent_slop; // add'l slop for size variance due to large itable offsets
@@ -237,7 +245,14 @@ VtableStub* VtableStubs::create_itable_stub(int itable_index) {
 #endif // ASSERT
 
   address ame_addr = __ pc();
+#if INCLUDE_OPT_META_SIZE
+  __ mov64(temp_reg, (int64_t)CodeCache::low_bound());
+  __ movl(temp_reg2, Address(method, Method::from_compiled_offset()));
+  __ addptr(temp_reg, temp_reg2);
+  __ jmp(temp_reg);
+#else
   __ jmp(Address(method, Method::from_compiled_offset()));
+#endif
 
   __ bind(L_no_such_interface);
   // Handle IncompatibleClassChangeError in itable stubs.
