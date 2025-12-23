@@ -623,7 +623,7 @@ void SharedRuntime::gen_i2c_adapter(MacroAssembler *masm,
   // Will jump to the compiled code just as if compiled code was doing it.
   // Pre-load the register-jump target early, to schedule it better.
 #if INCLUDE_OPT_META_SIZE
-  __ ldrw(rscratch1, Address(rmethod, in_bytes(Method::interpreter_entry_offset())));
+  __ ldrw(rscratch1, Address(rmethod, in_bytes(Method::from_compiled_offset())));
   __ mov(rscratch2, CodeCache::low_bound());
   __ add(rscratch1, rscratch1, rscratch2);
 #else
